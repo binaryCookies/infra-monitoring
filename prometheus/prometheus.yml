@@ -1,0 +1,47 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: infra
+    env: production
+
+rule_files:
+  - /etc/prometheus/alert.rules.yml
+
+scrape_configs:
+  # ── Live jobs ────────────────────────────────────────────────────────────────
+
+  - job_name: node-exporter
+    static_configs:
+      - targets:
+          - host.docker.internal:9100
+
+  - job_name: cadvisor
+    static_configs:
+      - targets:
+          - cadvisor:8080
+
+  # ── Pending Session B ────────────────────────────────────────────────────────
+  # UPDATE CONFIG add targets for each node app
+  # job_name: "node-apps" > static_configs > targets
+
+  - job_name: chatbot-api # pending Session B
+    static_configs:
+      - targets:
+          - chatbot-api:8180
+    metrics_path: /metrics
+
+  - job_name: nginx-exporter # pending Session B
+    static_configs:
+      - targets:
+          - nginx-exporter:9113
+
+  # UPDATE - add apache exporter (dev), nginx (prod)
+
+  # ── Pending Session C ────────────────────────────────────────────────────────
+
+  - job_name: pushgateway # pending Session C
+    honor_labels: true
+    static_configs:
+      - targets:
+          - pushgateway:9091

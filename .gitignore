@@ -1,0 +1,23 @@
+# ==========================================
+# 1. Environment & Secret Management
+# ==========================================
+# Secret files and local environment vars
+*.env
+*.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.crt
+*.age
+*.sops.yaml
+
+# ==========================================
+# 2. OS & IDE Noise
+# ==========================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~

@@ -1,0 +1,103 @@
+services:
+
+  # ── Prometheus ───────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v3.13.2
+    container_name: monitoring-prometheus
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - proxy-network
+      - backend-chatbot-network
+
+  # ── Grafana ──────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:13.0.6
+    container_name: monitoring-grafana
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GF_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD:?GF_ADMIN_PASSWORD must be set}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - proxy-network
+
+  # ── Node Exporter ────────────────────────────────────────────────────────────
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    container_name: monitoring-node-exporter
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    command:
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    volumes:
+      - /:/host:ro,rslave
+
+  # ── cAdvisor ─────────────────────────────────────────────────────────────────
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
+    container_name: monitoring-cadvisor
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    networks:
+      - proxy-network
+
+  # ── Pushgateway ──────────────────────────────────────────────────────────────
+  # stub — wired in Session C for batch-job metrics
+  pushgateway:
+    image: prom/pushgateway:v1.9.0
+    container_name: monitoring-pushgateway
+    restart: unless-stopped
+    networks:
+      - proxy-network
+
+  # ── Portainer ────────────────────────────────────────────────────────────────
+  # SECURITY BOUNDARY: /var/run/docker.sock gives Portainer full Docker daemon
+  # access.  Restrict to the ops team only; never expose port 9443 to the
+  # public internet.  All access must go through an SSH tunnel.
+  portainer:
+    image: portainer/portainer-ce:2.44.0
+    container_name: monitoring-portainer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_data:/data
+    networks:
+      - proxy-network
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  portainer_data:
+
+networks:
+  proxy-network:
+    external: true
+  backend-chatbot-network:
+    external: true

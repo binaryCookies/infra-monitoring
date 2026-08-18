@@ -1,0 +1,63 @@
+groups:
+  - name: infra
+    rules:
+
+      - alert: ContainerDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus target {{ $labels.job }} is down"
+          description: >
+            Target {{ $labels.instance }} (job={{ $labels.job }}) has been
+            unreachable for more than 2 minutes.
+
+      - alert: HighMemoryRSS
+        expr: >
+          (
+            container_memory_rss{image!=""}
+            /
+            container_spec_memory_limit_bytes{image!=""}
+          ) > 0.95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container {{ $labels.name }} RSS above 95 % of limit"
+          description: >
+            Container {{ $labels.name }} has used
+            {{ $value | humanizePercentage }} of its memory limit for 5 minutes.
+
+      - alert: CPUThrottling
+        expr: >
+          rate(container_cpu_cfs_throttled_periods_total{image!=""}[5m])
+          /
+          rate(container_cpu_cfs_periods_total{image!=""}[5m])
+          > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} CPU throttled > 50 %"
+          description: >
+            Container {{ $labels.name }} has had more than 50 % of its CPU
+            scheduling periods throttled for the last 10 minutes
+            (current ratio: {{ $value | humanizePercentage }}).
+
+      - alert: DiskSpaceLow
+        expr: >
+          (
+            node_filesystem_avail_bytes{mountpoint="/", fstype!~"tmpfs|overlay"}
+            /
+            node_filesystem_size_bytes{mountpoint="/", fstype!~"tmpfs|overlay"}
+          ) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space below 10 % on {{ $labels.instance }}"
+          description: >
+            Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} has
+            less than 10 % free space
+            ({{ $value | humanizePercentage }} available).
