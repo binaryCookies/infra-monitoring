@@ -1,7 +1,12 @@
 # Monitoring Stack — Getting Started
 
-Prometheus · Grafana · cAdvisor · node-exporter · Pushgateway · Portainer
+- Grafana
+- Prometheus  
+- node-exporter  
+- Pushgateway  
+- Portainer
 
+TODO: Apache exporter, Nginx exporter, alerting rules, scrape configs.
 ---
 
 ## Prerequisites
@@ -49,12 +54,12 @@ make up
 Expected output from `make health` once all containers are stable (≈ 30 s):
 
 ```
-✅  monitoring-prometheus       state=running  health=n/a
-✅  monitoring-grafana          state=running  health=n/a
-✅  monitoring-cadvisor         state=running  health=n/a
-✅  monitoring-pushgateway      state=running  health=n/a
-✅  monitoring-portainer        state=running  health=n/a
-✅  monitoring-node-exporter    state=running  health=n/a
+✓  monitoring-prometheus       state=running  health=n/a
+✓  monitoring-grafana          state=running  health=n/a
+✓  monitoring-cadvisor         state=running  health=n/a
+✓  monitoring-pushgateway      state=running  health=n/a
+✓  monitoring-portainer        state=running  health=n/a
+✓  monitoring-node-exporter    state=running  health=n/a
 ```
 
 > `node-exporter` runs with `network_mode: host` so it will not appear in
