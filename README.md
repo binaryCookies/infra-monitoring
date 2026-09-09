@@ -119,6 +119,9 @@ make health             # Per-container state summary
 make shell-prometheus   # /bin/sh in prometheus container
 make shell-grafana      # /bin/bash in grafana container
 make prune              # docker system prune -af (confirmation required)
+
+# RESET GRAFANA DASHBOARD PASSWORD
+docker exec monitoring-grafana grafana-cli admin reset-admin-password admin
 ```
 
 ---
