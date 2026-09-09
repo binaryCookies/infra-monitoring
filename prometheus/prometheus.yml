@@ -19,17 +19,19 @@ scrape_configs:
   - job_name: cadvisor
     static_configs:
       - targets:
-          - cadvisor:8080
+          - cadvisor:8080 # prod: 8080, local: 8181, dev: 8183
 
-  # ── Pending Session B ────────────────────────────────────────────────────────
-  # UPDATE CONFIG add targets for each node app
-  # job_name: "node-apps" > static_configs > targets
+  # ── Live jobs (Session B) ─────────────────────────────────────────────────────
 
-  - job_name: chatbot-api # pending Session B
+  # chatbot-api runs as a bare host process in dev (port 8181), not a container
+  # on backend-chatbot-network — reach it via host.docker.internal.
+  - job_name: chatbot-api
     static_configs:
       - targets:
-          - chatbot-api:8180
-    metrics_path: /metrics
+          - host.docker.internal:8181
+    metrics_path: /api/v1/metrics
+
+  # ── Pending Session B ────────────────────────────────────────────────────────
 
   - job_name: nginx-exporter # pending Session B
     static_configs:
