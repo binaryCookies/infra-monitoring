@@ -9,9 +9,27 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+# create_network() {
+#   local name=$1
+#   if docker network inspect "$name" &>/dev/null; then
+#     echo -e "  ${YELLOW}[exists]${NC}  $name"
+#   else
+#     docker network create "$name"
+#     echo -e "  ${GREEN}[created]${NC} $name"
+#   fi
+# }
+
 create_network() {
-  local name=$1
-  if docker network inspect "$name" &>/dev/null; then
+  local name=""
+  echo "Available Docker networks:"
+  echo ""
+  docker network ls --format '{{.Name}}'
+  
+  while [ -z "$name" ]; do
+    read -p "Enter network name: " name
+  done
+   # flag ref: -x (exact match) -q (quiet)
+  if docker network ls --format '{{.Name}}' | grep -xq "$name"; then
     echo -e "  ${YELLOW}[exists]${NC}  $name"
   else
     docker network create "$name"
